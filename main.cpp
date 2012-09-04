@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     }
     al_init_font_addon();   // initialize the font addon
     al_init_ttf_addon();    // initialize the ttf (True Type Font) addon
-    font= al_load_ttf_font("pirulen.ttf",72,0 );
+    font= al_load_ttf_font("pirulen.ttf",10,0 );
 
     event_queue = al_create_event_queue();
     if(!event_queue) {
