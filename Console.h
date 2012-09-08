@@ -13,6 +13,8 @@ public:
     ~Console();
 
     std::vector<std::string> getVisibleLines() const;
+    int getCharPerLine() const;
+    int getMaxVisibleLines() const;
     
     void addLine(const std::string &line);
     void scrollUp(int numLines);

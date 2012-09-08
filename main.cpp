@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 #include "AllegroTerminal/Console.h"
@@ -12,6 +13,7 @@ using namespace std;
 using namespace etsai::allegroterminal;
 
 void start();
+void draw(const string& msg);
 
 Console *console;
 const float FPS= 60;
@@ -21,6 +23,7 @@ ALLEGRO_EVENT_QUEUE *event_queue= NULL;
 ALLEGRO_FONT *font= NULL;
 
 int main(int argc, char **argv) {
+    stringstream cpl(stringstream::out), mvl(stringstream::out);
     const char *fontPath= "/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf";
     width= atoi(argv[1]);
     height= atoi(argv[2]);
@@ -52,13 +55,14 @@ int main(int argc, char **argv) {
 
     al_register_event_source(event_queue, al_get_display_event_source(display));
     al_register_event_source(event_queue, al_get_keyboard_event_source());
-    al_clear_to_color(al_map_rgb(0,0,0));
-    al_flip_display();
 
-    cout << "chars per line: " << width/al_get_text_width(font,"a") << endl;
-    cout << "max visible lines: " << height/al_get_font_line_height(font) << endl;
     console= new Console(width/al_get_text_width(font,"a"), 4096, height/al_get_font_line_height(font));
+    cpl << "chars per line: " << console->getCharPerLine();
+    mvl << "max visible lines: " << console->getMaxVisibleLines();
+    console->addLine(cpl.str());
+    console->addLine(mvl.str());
 
+    draw("");
     start();
     al_destroy_display(display);
     delete console;
@@ -80,17 +84,23 @@ void start() {
             } else if (ev.keyboard.keycode == 67) {
                 console->addLine(msg);
                 msg.clear();
-            } else if (ev.keyboard.unichar > 0)
+            } else if (ev.keyboard.unichar > 0) {
                 msg+= char(ev.keyboard.unichar);
-
-            al_clear_to_color(al_map_rgb(0,0,0));
-            al_draw_text(font, al_map_rgb(0,255,0), 0, height-al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, msg.c_str());
-            visibleLines= console->getVisibleLines();
-            int y= 0;
-            for(auto it= visibleLines.begin(); it != visibleLines.end(); it++,y++) {
-                al_draw_text(font, al_map_rgb(0,255,0), 0, y * al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, it->c_str());
             }
-            al_flip_display();
+
+            draw(msg);
         }
     }
+}
+
+void draw(const string& msg) {
+    vector<string> visibleLines= console->getVisibleLines();
+    int y= 0;
+
+    al_clear_to_color(al_map_rgb(0,0,0));
+    al_draw_text(font, al_map_rgb(0,255,0), 0, height-al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, msg.c_str());
+    for(auto it= visibleLines.begin(); it != visibleLines.end(); it++,y++) {
+        al_draw_text(font, al_map_rgb(0,255,0), 0, y * al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, it->c_str());
+    }
+    al_flip_display();
 }

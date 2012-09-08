@@ -32,6 +32,14 @@ vector<string> Console::getVisibleLines() const {
     return visibleLines;
 }
 
+int Console::getCharPerLine() const {
+    return charPerLine;
+}
+
+int Console::getMaxVisibleLines() const {
+    return maxVisibleLines;
+}
+
 void Console::addLine(const string& line) {
     if (begin != end) {
         if (visibleEnd == end) {
