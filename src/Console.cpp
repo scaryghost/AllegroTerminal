@@ -24,19 +24,24 @@ vector<string> Console::getVisibleLines() const {
         visibleLines[vlIndex]= lines[i];
         increment(i);
         vlIndex++;
-        terminate= (i <= visibleEnd);
+        terminate= (i > visibleEnd);
+    }
+    if (visibleBegin == visibleEnd) {
+        visibleLines[0]= lines[visibleBegin];
     }
     return visibleLines;
 }
 
 void Console::addLine(const string& line) {
-    if (visibleEnd == end) {
-        increment(visibleEnd);
+    if (begin != end) {
+        if (visibleEnd == end) {
+            increment(visibleEnd);
+        }
+
+        increment(end);
     }
 
-    increment(end);
     lines[end]= line;
-    
     if (begin == end) {
         increment(begin);
     }
