@@ -4,7 +4,9 @@
 
 #include <cstdlib>
 #include <iostream>
-#include <sstream>
+#include <string>
+
+#include "AllegroTerminal/Console.h"
 
 using namespace std;
 
@@ -17,6 +19,7 @@ ALLEGRO_EVENT_QUEUE *event_queue= NULL;
 ALLEGRO_FONT *font= NULL;
 
 int main(int argc, char **argv) {
+    const char *fontPath= "/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf";
     width= atoi(argv[1]);
     height= atoi(argv[2]);
 
@@ -26,7 +29,7 @@ int main(int argc, char **argv) {
     }
     al_init_font_addon();   // initialize the font addon
     al_init_ttf_addon();    // initialize the ttf (True Type Font) addon
-    font= al_load_ttf_font("pirulen.ttf",10,0 );
+    font= al_load_ttf_font(fontPath, 10, 0);
 
     event_queue = al_create_event_queue();
     if(!event_queue) {
@@ -50,24 +53,28 @@ int main(int argc, char **argv) {
     al_clear_to_color(al_map_rgb(0,0,0));
     al_flip_display();
 
+    cout << "Height: " << al_get_font_line_height(font) << endl;
     start();
     al_destroy_display(display);
 }
 
 void start() {
+    string msg;
+
     while(true) {
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
 
         if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
             break;
-        } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-            stringstream msg(stringstream::out);
+        } else if (ev.type == ALLEGRO_EVENT_KEY_CHAR) {
+            if (ev.keyboard.unichar > 0)
+                msg+= char(ev.keyboard.unichar);
 
-            msg << ev.keyboard.keycode;
             al_clear_to_color(al_map_rgb(0,0,0));
-            al_draw_text(font, al_map_rgb(0,255,0), width/2, (height/4),ALLEGRO_ALIGN_CENTRE, msg.str().c_str());
+            al_draw_text(font, al_map_rgb(0,255,0), width/2, (height/4),ALLEGRO_ALIGN_CENTRE, msg.c_str());
             al_flip_display();
+            cout << "Width: " << al_get_text_width(font, msg.c_str()) << endl;
         }
     }
 }
