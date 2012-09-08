@@ -19,14 +19,14 @@ public:
     void scrollDown(int numLines);
 
 protected:
-    int calcNumLines(int left, int right);
-    void increment(int &i);
-    void increment(int &i, int offset);
-    void decrement(int &i, int offset);
+    int calcNumLines(int left, int right) const;
+    void increment(int &i) const;
+    void increment(int &i, int offset) const;
+    void decrement(int &i, int offset) const;
 
 private:
-    int maxVisibleLines;
     int charPerLine;
+    int maxVisibleLines;
     int begin;
     int end;
     int visibleBegin;

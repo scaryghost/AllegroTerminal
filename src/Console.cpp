@@ -7,16 +7,16 @@ using std::vector;
 using std::string;
 
 Console::Console(int charPerLine, int maxLinesStored, int maxVisibleLines) : 
-    charPerLine(charPerLine), lines(maxLinesStored),
-    maxVisibleLines(maxVisibleLines), begin(0), end(0),
-    visibleBegin(0), visibleEnd(0) {
+    charPerLine(charPerLine), maxVisibleLines(maxVisibleLines), begin(0), 
+    end(0), visibleBegin(0), visibleEnd(0) {
+    lines.resize(maxLinesStored);
 }
 
 Console::~Console() {
 }
 
 vector<string> Console::getVisibleLines() const {
-    vector<string> visibleLines(calcNumVisibleLines());
+    vector<string> visibleLines(calcNumLines(visibleBegin, visibleEnd));
     bool terminate= (visibleBegin == visibleEnd);
     int vlIndex= 0, i= visibleBegin;
     
@@ -61,20 +61,20 @@ void Console::scrollDown(int numLines) {
     increment(visibleEnd, usedOffset);
 }
 
-int Console::calcNumLines(int left, int right) {
+int Console::calcNumLines(int left, int right) const {
     int max= lines.size();
     return (right - left + max) % max + 1;
 }
 
-void Console::increment(int &i) {
+void Console::increment(int &i) const {
     i= (i + 1) % lines.size();
 }
 
-void Console::increment(int &i, int offset) {
+void Console::increment(int &i, int offset) const {
     i= (i + offset) % lines.size();
 }
 
-void Console::decrement(int &i, int offset) {
+void Console::decrement(int &i, int offset) const {
     i= (i - offset + lines.size()) % lines.size();
 }
 
