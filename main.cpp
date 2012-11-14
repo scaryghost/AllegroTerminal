@@ -3,10 +3,13 @@
 #include <allegro5/allegro_ttf.h>
 
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
+#include "AllegroTerminal/Commands.h"
 #include "AllegroTerminal/Console.h"
 
 using namespace std;
@@ -14,6 +17,7 @@ using namespace etsai::allegroterminal;
 
 void start();
 void draw(const string& msg);
+void addCommands();
 
 Console *console;
 const float FPS= 60;
@@ -24,7 +28,7 @@ ALLEGRO_FONT *font= NULL;
 
 int main(int argc, char **argv) {
     stringstream cpl(stringstream::out), mvl(stringstream::out);
-    const char *fontPath= "/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf";
+    const char *fontPath= "DejaVuSansMono.ttf";
     width= atoi(argv[1]);
     height= atoi(argv[2]);
 
@@ -32,6 +36,7 @@ int main(int argc, char **argv) {
         cerr << "failed to initialize allegro!\n";
         return -1;
     }
+
     al_init_font_addon();   // initialize the font addon
     al_init_ttf_addon();    // initialize the ttf (True Type Font) addon
     font= al_load_ttf_font(fontPath, 10, 0);
@@ -41,7 +46,6 @@ int main(int argc, char **argv) {
         cerr << "failed to create event_queue!\n";
         return -1;
     }
-
     if(!al_install_keyboard()) {
         cerr << "failed to initialize the keyboard!\n";
         return -1;
@@ -63,9 +67,23 @@ int main(int argc, char **argv) {
     console->addLine(mvl.str());
 
     draw("");
+    addCommands();
     start();
     al_destroy_display(display);
     delete console;
+}
+
+void addCommands() {
+    Commands::add("add", [](const vector<string> &args) -> void {
+        stringstream sum(stringstream::out);
+
+        sum << atoi(args[0].c_str()) + atoi(args[1].c_str());
+        console->addLine(sum.str());
+    });
+
+    Commands::add("echo", [](const vector<string> &args) -> void {
+        console->addLine(args[0]);
+    });
 }
 
 void start() {
@@ -83,6 +101,11 @@ void start() {
                 msg= msg.substr(0, msg.length()-1);
             } else if (ev.keyboard.keycode == 67) {
                 console->addLine(msg);
+                try {
+                    Commands::exec(msg);
+                } catch (exception &ex) {
+                    console->addLine(ex.what());
+                }
                 msg.clear();
             } else if (ev.keyboard.unichar > 0) {
                 msg+= char(ev.keyboard.unichar);

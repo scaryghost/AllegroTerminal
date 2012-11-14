@@ -18,7 +18,7 @@ class Commands {
 public:
     typedef std::function<void (const std::vector<std::string> &args)> TermCommand;
 
-    static void add(std::string name, TermCommand &comm) throw(std::runtime_error);
+    static void add(std::string name, const TermCommand &comm) throw(std::runtime_error);
     static void exec(const std::string line) throw(std::runtime_error);
 
 private:

@@ -15,7 +15,7 @@ using std::vector;
 
 unordered_map<string, Commands::TermCommand> Commands::commands;
 
-void Commands::add(std::string name, TermCommand &comm) throw(std::runtime_error) {
+void Commands::add(std::string name, const TermCommand &comm) throw(std::runtime_error) {
     if (commands.count(name) != 0) {
         stringstream msg(stringstream::out);
 
@@ -57,13 +57,13 @@ void Commands::exec(const std::string line) throw(std::runtime_error) {
             args.push_back(temp);
         }
     }
-
     if (commands.count(name) == 0) {
         stringstream msg(stringstream::out);
-
+        
         msg << "Unrecognized command: " << name;
         throw runtime_error(msg.str().c_str());
     }
+
     commands[name](args);
 }
 
