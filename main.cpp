@@ -3,6 +3,7 @@
 #include <allegro5/allegro_ttf.h>
 
 #include <cstdlib>
+#include <ctime>
 #include <exception>
 #include <iostream>
 #include <sstream>
@@ -19,9 +20,10 @@ void start();
 void draw(const string& msg);
 void addCommands();
 
-Console *console;
+volatile bool endProgram= false;
 const float FPS= 60;
 int width, height;
+Console *console;
 ALLEGRO_DISPLAY *display= NULL;
 ALLEGRO_EVENT_QUEUE *event_queue= NULL;
 ALLEGRO_FONT *font= NULL;
@@ -84,13 +86,35 @@ void addCommands() {
     Commands::add("echo", [](const vector<string> &args) -> void {
         console->addLine(args[0]);
     });
+
+    Commands::add("quit", [](const vector<string> &args) -> void {
+        endProgram= true;
+    });
+
+    Commands::add("time", [](const vector<string> &args) -> void {
+        time_t curr;
+        const char* format= "%Y-%m-%d %H:%M:%S %Z";
+        char timeStamp[80];
+
+        time(&curr);
+#ifdef WIN32
+        tm timeInfo;
+        localtime_s(&timeInfo, &curr);
+        strftime(timeStamp, sizeof(timeStamp), format, &timeInfo);
+#else
+        tm* timeInfo;
+        timeInfo= localtime(&curr);
+        strftime(timeStamp, sizeof(timeStamp), format, timeInfo);
+#endif
+        console->addLine(string("Current time: ") + timeStamp);
+    });
 }
 
 void start() {
     string msg;
     vector<string> visibleLines;
 
-    while(true) {
+    while(!endProgram) {
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
 
