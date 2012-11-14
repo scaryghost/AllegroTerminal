@@ -2,6 +2,7 @@
 #define ETSAI_ALLEGROTERMINAL_COMMANDS
 
 #include <functional>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -17,8 +18,8 @@ class Commands {
 public:
     typedef std::function<void (const std::vector<std::string> &args)> TermCommand;
 
-    static void add(const TermCommand &comm);
-    static void exec(const std::vector<std::string> argv);
+    static void add(std::string name, TermCommand &comm) throw(std::runtime_error);
+    static void exec(const std::string line) throw(std::runtime_error);
 
 private:
     static std::unordered_map<std::string, TermCommand> commands;
