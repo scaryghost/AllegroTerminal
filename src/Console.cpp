@@ -40,6 +40,14 @@ int Console::getMaxVisibleLines() const {
     return maxVisibleLines;
 }
 
+std::string Console::getInput() const {
+    return input;
+}
+
+const std::vector<std::string>& Console::getHistories(int offset) const {
+    return histories;
+}
+
 void Console::addLine(const string& line) {
     if (begin != end) {
         if (visibleEnd == end) {
@@ -72,6 +80,20 @@ void Console::scrollDown(int numLines) {
 
     increment(visibleBegin, usedOffset);
     increment(visibleEnd, usedOffset);
+}
+
+void Console::exec() {
+    addLine(input);
+    histories.push_back(input);
+    input.clear();
+}
+
+void Console::addInputChar(char ch, int pos) {
+    input.insert(pos, 1, ch);
+}
+
+void Console::removeInputChar(int pos) {
+    input.erase(pos, 1);
 }
 
 int Console::calcNumLines(int left, int right) const {

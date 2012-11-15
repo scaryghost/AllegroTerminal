@@ -111,7 +111,7 @@ void addCommands() {
 }
 
 void start() {
-    string msg;
+    int cursorPos= -1;
     vector<string> visibleLines;
 
     while(!endProgram) {
@@ -121,21 +121,22 @@ void start() {
         if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
             break;
         } else if (ev.type == ALLEGRO_EVENT_KEY_CHAR) {
-            if (ev.keyboard.keycode == 63) {
-                msg= msg.substr(0, msg.length()-1);
+            if (cursorPos != -1 && ev.keyboard.keycode == 63) {
+                console->removeInputChar(cursorPos);
+                cursorPos--;
             } else if (ev.keyboard.keycode == 67) {
-                console->addLine(msg);
                 try {
-                    Commands::exec(msg);
+                    console->exec();
                 } catch (exception &ex) {
                     console->addLine(ex.what());
                 }
-                msg.clear();
+                cursorPos= -1;
             } else if (ev.keyboard.unichar > 0) {
-                msg+= char(ev.keyboard.unichar);
+                cursorPos++;
+                console->addInputChar(char(ev.keyboard.unichar), cursorPos);
             }
 
-            draw(msg);
+            draw(console->getInput());
         }
     }
 }
