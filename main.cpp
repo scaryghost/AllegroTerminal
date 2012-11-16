@@ -4,7 +4,6 @@
 
 #include <cstdlib>
 #include <ctime>
-#include <exception>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -41,7 +40,7 @@ int main(int argc, char **argv) {
 
     al_init_font_addon();   // initialize the font addon
     al_init_ttf_addon();    // initialize the ttf (True Type Font) addon
-    font= al_load_ttf_font(fontPath, 10, 0);
+    font= al_load_ttf_font(fontPath, atoi(argv[3]), 0);
 
     event_queue = al_create_event_queue();
     if(!event_queue) {
@@ -125,11 +124,7 @@ void start() {
                 console->removeInputChar(cursorPos);
                 cursorPos--;
             } else if (ev.keyboard.keycode == 67) {
-                try {
-                    console->exec();
-                } catch (exception &ex) {
-                    console->addLine(ex.what());
-                }
+                console->exec();
                 cursorPos= -1;
             } else if (ev.keyboard.unichar > 0) {
                 cursorPos++;

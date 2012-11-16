@@ -1,8 +1,12 @@
 #include "AllegroTerminal/Console.h"
+#include "AllegroTerminal/Commands.h"
+
+#include <exception>
 
 namespace etsai {
 namespace allegroterminal {
 
+using std::exception;
 using std::vector;
 using std::string;
 
@@ -85,6 +89,11 @@ void Console::scrollDown(int numLines) {
 void Console::exec() {
     addLine(input);
     histories.push_back(input);
+    try {
+        Commands::exec(input);
+    } catch (exception &ex) {
+        addLine(ex.what());
+    }
     input.clear();
 }
 
