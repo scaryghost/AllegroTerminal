@@ -53,18 +53,26 @@ const std::vector<std::string>& Console::getHistories(int offset) const {
 }
 
 void Console::addLine(const string& line) {
-    if (visibleEnd == end) {
-        increment(visibleEnd);
-    }
-    increment(end);
-    if (begin == end || begin == -1) {
-        increment(begin);
-    }
-    lines[end]= line;
+    size_t i= 0;
+
+    while(i < line.size()) {
+        string substr= line.substr(i, charPerLine);
+        if (visibleEnd == end) {
+            increment(visibleEnd);
+        }
+        increment(end);
+        if (begin == end || begin == -1) {
+            increment(begin);
+        }
+        lines[end]= substr;
     
-    if (calcNumLines(visibleBegin, visibleEnd) > maxVisibleLines) {
-        increment(visibleBegin);
+        if (calcNumLines(visibleBegin, visibleEnd) > maxVisibleLines) {
+            increment(visibleBegin);
+        }
+
+        i+= charPerLine;
     }
+    
 }
 
 void Console::scrollUp(int numLines) {
