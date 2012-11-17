@@ -19,12 +19,13 @@ void start();
 void draw(const string& msg, int offset, int cursorPos);
 void addCommands();
 
-volatile bool endProgram= false;
+volatile bool endProgram= false, drawCursor= true;
 int width, height;
 Console *console;
 ALLEGRO_DISPLAY *display= NULL;
 ALLEGRO_EVENT_QUEUE *event_queue= NULL;
 ALLEGRO_FONT *font= NULL;
+ALLEGRO_TIMER *timer;
 int fontW;
 
 int main(int argc, char **argv) {
@@ -58,6 +59,8 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    timer = al_create_timer(0.5);
+    al_register_event_source(event_queue, al_get_timer_event_source(timer));
     al_register_event_source(event_queue, al_get_display_event_source(display));
     al_register_event_source(event_queue, al_get_keyboard_event_source());
 
@@ -70,6 +73,7 @@ int main(int argc, char **argv) {
 
     draw("", 0, 0);
     addCommands();
+    al_start_timer(timer);
     start();
     al_destroy_display(display);
     delete console;
@@ -123,19 +127,22 @@ void start() {
         
         if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
             break;
+        } else if(ev.type == ALLEGRO_EVENT_TIMER) {
+            drawCursor= !drawCursor;
         } else if (ev.type == ALLEGRO_EVENT_KEY_CHAR) {
-            stringstream key(stringstream::out);
-            key << ev.keyboard.keycode;
-            console->addLine(key.str());
-            if (charNo != 0 && ev.keyboard.keycode == 63) {
-                cursorPos--;
-                charNo--;
-                console->removeInputChar(charNo);
+            if (ev.keyboard.keycode == 63) {
+                if (charNo != 0) {
+                    cursorPos--;
+                    charNo--;
+                    console->removeInputChar(charNo);
+                }
             } else if (ev.keyboard.keycode == 67) {
-                console->exec();
-                charNo= 0;
-                cursorPos= 0;
-                offset= 0;
+                if (!console->getInput().empty()) {
+                    console->exec();
+                    charNo= 0;
+                    cursorPos= 0;
+                    offset= 0;
+                }
             } else if (ev.keyboard.keycode == 82) {
                 charNo--;
                 cursorPos--;
@@ -173,7 +180,9 @@ void draw(const string& msg, int offset, int cursorPos) {
     int y= 0;
 
     al_clear_to_color(al_map_rgb(0,0,0));
-    al_draw_text(font, al_map_rgb(0,255,0), cursorPos * fontW, height-al_get_font_line_height(font), ALLEGRO_ALIGN_CENTRE, "|");
+    if (drawCursor) {
+        al_draw_text(font, al_map_rgb(0,255,0), cursorPos * fontW, height-al_get_font_line_height(font), ALLEGRO_ALIGN_CENTRE, "|");
+    }
     al_draw_text(font, al_map_rgb(0,255,0), 0, height-al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, msg.substr(offset, console->getCharPerLine()).c_str());
     for(auto it= visibleLines.begin(); it != visibleLines.end(); it++,y++) {
         al_draw_text(font, al_map_rgb(0,255,0), 0, y * al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, it->c_str());
