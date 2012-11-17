@@ -16,7 +16,7 @@ using namespace std;
 using namespace etsai::allegroterminal;
 
 void start();
-void draw(const string& msg, int cursorPos);
+void draw(const string& msg, int offset, int cursorPos);
 void addCommands();
 
 volatile bool endProgram= false;
@@ -25,6 +25,7 @@ Console *console;
 ALLEGRO_DISPLAY *display= NULL;
 ALLEGRO_EVENT_QUEUE *event_queue= NULL;
 ALLEGRO_FONT *font= NULL;
+int fontW;
 
 int main(int argc, char **argv) {
     stringstream cpl(stringstream::out), mvl(stringstream::out);
@@ -60,13 +61,14 @@ int main(int argc, char **argv) {
     al_register_event_source(event_queue, al_get_display_event_source(display));
     al_register_event_source(event_queue, al_get_keyboard_event_source());
 
-    console= new Console(width/al_get_text_width(font,"a"), 4096, height/al_get_font_line_height(font) - 1);
+    fontW= al_get_text_width(font,"a");
+    console= new Console(width/fontW, 4096, height/al_get_font_line_height(font) - 1);
     cpl << "chars per line: " << console->getCharPerLine();
     mvl << "max visible lines: " << console->getMaxVisibleLines();
     console->addLine(cpl.str());
     console->addLine(mvl.str());
 
-    draw("", 0);
+    draw("", 0, 0);
     addCommands();
     start();
     al_destroy_display(display);
@@ -162,16 +164,16 @@ void start() {
             offset++;
             cursorPos= console->getCharPerLine();
         }
-        draw(console->getInput(), offset);
+        draw(console->getInput(), offset, cursorPos);
     }
 }
 
-void draw(const string& msg, int offset) {
+void draw(const string& msg, int offset, int cursorPos) {
     vector<string> visibleLines= console->getVisibleLines();
     int y= 0;
 
     al_clear_to_color(al_map_rgb(0,0,0));
-
+    al_draw_text(font, al_map_rgb(0,255,0), cursorPos * fontW, height-al_get_font_line_height(font), ALLEGRO_ALIGN_CENTRE, "|");
     al_draw_text(font, al_map_rgb(0,255,0), 0, height-al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, msg.substr(offset, console->getCharPerLine()).c_str());
     for(auto it= visibleLines.begin(); it != visibleLines.end(); it++,y++) {
         al_draw_text(font, al_map_rgb(0,255,0), 0, y * al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, it->c_str());
