@@ -20,7 +20,6 @@ void draw(const string& msg);
 void addCommands();
 
 volatile bool endProgram= false;
-const float FPS= 60;
 int width, height;
 Console *console;
 ALLEGRO_DISPLAY *display= NULL;
@@ -61,7 +60,7 @@ int main(int argc, char **argv) {
     al_register_event_source(event_queue, al_get_display_event_source(display));
     al_register_event_source(event_queue, al_get_keyboard_event_source());
 
-    console= new Console(width/al_get_text_width(font,"a"), 4096, height/al_get_font_line_height(font));
+    console= new Console(width/al_get_text_width(font,"a"), 4096, height/al_get_font_line_height(font) - 1);
     cpl << "chars per line: " << console->getCharPerLine();
     mvl << "max visible lines: " << console->getMaxVisibleLines();
     console->addLine(cpl.str());
@@ -112,11 +111,12 @@ void addCommands() {
 void start() {
     int cursorPos= -1;
     vector<string> visibleLines;
+    vector<bool> pressed_keys(ALLEGRO_KEY_MAX, false);
 
     while(!endProgram) {
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
-
+        
         if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
             break;
         } else if (ev.type == ALLEGRO_EVENT_KEY_CHAR) {
@@ -130,9 +130,17 @@ void start() {
                 cursorPos++;
                 console->addInputChar(char(ev.keyboard.unichar), cursorPos);
             }
-
-            draw(console->getInput());
+        } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+            pressed_keys[ev.keyboard.keycode]= true;
+            if (pressed_keys[ALLEGRO_KEY_LSHIFT] && pressed_keys[ALLEGRO_KEY_PGUP]) {
+                console->scrollUp(4);
+            } else if (pressed_keys[ALLEGRO_KEY_LSHIFT] && pressed_keys[ALLEGRO_KEY_PGDN]) {
+                console->scrollDown(4);
+            }
+        } else if (ev.type == ALLEGRO_EVENT_KEY_UP) {
+            pressed_keys[ev.keyboard.keycode]= false;
         }
+        draw(console->getInput());
     }
 }
 

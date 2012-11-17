@@ -11,8 +11,8 @@ using std::vector;
 using std::string;
 
 Console::Console(int charPerLine, int maxLinesStored, int maxVisibleLines) : 
-    charPerLine(charPerLine), maxVisibleLines(maxVisibleLines), begin(0), 
-    end(0), visibleBegin(0), visibleEnd(0) {
+    charPerLine(charPerLine), maxVisibleLines(maxVisibleLines), begin(-1), 
+    end(-1), visibleBegin(0), visibleEnd(0) {
     lines.resize(maxLinesStored);
 }
 
@@ -53,18 +53,15 @@ const std::vector<std::string>& Console::getHistories(int offset) const {
 }
 
 void Console::addLine(const string& line) {
-    if (begin != end) {
-        if (visibleEnd == end) {
-            increment(visibleEnd);
-        }
-
-        increment(end);
+    if (visibleEnd == end) {
+        increment(visibleEnd);
     }
-
-    lines[end]= line;
-    if (begin == end) {
+    increment(end);
+    if (begin == end || begin == -1) {
         increment(begin);
     }
+    lines[end]= line;
+    
     if (calcNumLines(visibleBegin, visibleEnd) > maxVisibleLines) {
         increment(visibleBegin);
     }
@@ -73,7 +70,7 @@ void Console::addLine(const string& line) {
 void Console::scrollUp(int numLines) {
     int diff= calcNumLines(begin, visibleBegin) - 1;
     int usedOffset= diff < numLines ? diff : numLines;
-
+    
     decrement(visibleBegin, usedOffset);
     decrement(visibleEnd, usedOffset);
 }
