@@ -46,11 +46,13 @@ void Input::insertChar(char ch) {
     current.insert(inputPos, 1, ch);
     moveRight(1);
 }
-void Input::removeChar() {
+bool Input::removeChar() {
     if (inputPos > 0) {
         current.erase(inputPos - 1, 1);
         moveLeft(1);
+        return true;
     }
+    return false;
 }
 
 bool Input::prevCommand() {

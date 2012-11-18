@@ -18,7 +18,7 @@ public:
     bool moveLeft(int offset);
     bool moveRight(int offset);
     void insertChar(char ch);
-    void removeChar();
+    bool removeChar();
 
     bool prevCommand();
     bool nextCommand();

@@ -144,9 +144,8 @@ void start() {
             drawCursor= !drawCursor;
         } else if (ev.type == ALLEGRO_EVENT_KEY_CHAR) {
             if (ev.keyboard.keycode == 63) {
-                if (!input.empty()) {
+                if (input.removeChar()) {
                     cursorPos--;
-                    input.removeChar();
                 }
             } else if (ev.keyboard.keycode == 67) {
                 if (!input.empty()) {
