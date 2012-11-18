@@ -143,11 +143,24 @@ void start() {
         } else if(ev.type == ALLEGRO_EVENT_TIMER) {
             drawCursor= !drawCursor;
         } else if (ev.type == ALLEGRO_EVENT_KEY_CHAR) {
-            if (ev.keyboard.keycode == 63) {
+            if (ev.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) {
                 if (input.removeChar()) {
                     cursorPos--;
+                    if (cursorPos == 0 && offset != 0) {
+                        int delta= min(offset, 4);
+                        offset-= delta;
+                        cursorPos= delta;
+                    }
                 }
-            } else if (ev.keyboard.keycode == 67) {
+            } else if (ev.keyboard.keycode == ALLEGRO_KEY_HOME) {
+                input.moveLeft(offset + cursorPos);
+                offset= 0;
+                cursorPos= 0;
+            } else if (ev.keyboard.keycode == ALLEGRO_KEY_END) {
+                input.moveRight(input.size());
+                offset= max((int)input.size() - console->getCharPerLine(), 0);
+                cursorPos= min((int)input.size(), console->getCharPerLine());
+            } else if (ev.keyboard.keycode == ALLEGRO_KEY_ENTER) {
                 if (!input.empty()) {
                     try {
                         console->addLine("> " + input.getValue());
@@ -159,14 +172,13 @@ void start() {
                     offset= 0;
                     input.clear();
                 }
-            } else if (ev.keyboard.keycode == 82 && input.moveLeft(1)) {
+            } else if (ev.keyboard.keycode == ALLEGRO_KEY_LEFT && input.moveLeft(1)) {
                 cursorPos--;
-            } else if (ev.keyboard.keycode == 83 && input.moveRight(1)) {
+            } else if (ev.keyboard.keycode == ALLEGRO_KEY_RIGHT && input.moveRight(1)) {
                 cursorPos++;
-            } else if (ev.keyboard.keycode == 84 && input.prevCommand() || ev.keyboard.keycode == 85 && input.nextCommand()) {
+            } else if (ev.keyboard.keycode == ALLEGRO_KEY_UP && input.prevCommand() || ev.keyboard.keycode == ALLEGRO_KEY_DOWN && input.nextCommand()) {
                 cursorPos= min((int)input.size(), console->getCharPerLine());
                 offset= max((int)input.size() - console->getCharPerLine(), 0);
-                cout << cursorPos << " " << offset<<endl;
             } else if (ev.keyboard.unichar > 0) {
                 input.insertChar(char(ev.keyboard.unichar));
                 cursorPos++;
