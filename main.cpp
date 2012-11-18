@@ -11,6 +11,7 @@
 
 #include "AllegroTerminal/Commands.h"
 #include "AllegroTerminal/Console.h"
+#include "AllegroTerminal/Input.h"
 
 using namespace std;
 using namespace etsai::allegroterminal;
@@ -127,12 +128,10 @@ void addCommands() {
 
 void start() {
     int cursorPos= 0;
-    size_t charNo= 0;
     int offset= 0;
-    int historyOffset= -1;
     vector<string> visibleLines;
     vector<bool> pressed_keys(ALLEGRO_KEY_MAX, false);
-    string input, oldInput;
+    Input input;
 
     while(!endProgram) {
         ALLEGRO_EVENT ev;
@@ -144,51 +143,30 @@ void start() {
             drawCursor= !drawCursor;
         } else if (ev.type == ALLEGRO_EVENT_KEY_CHAR) {
             if (ev.keyboard.keycode == 63) {
-                if (charNo != 0) {
+                if (!input.empty()) {
                     cursorPos--;
-                    charNo--;
-                    input.erase(charNo, 1);
+                    input.removeChar();
                 }
             } else if (ev.keyboard.keycode == 67) {
                 if (!input.empty()) {
                     try {
-                        console->addLine("> " + input);
-                        Commands::exec(input);
+                        console->addLine("> " + input.getValue());
+                        Commands::exec(input.getValue());
                     } catch (exception &ex) {
                         console->addLine(ex.what());
                     }
-                    charNo= 0;
                     cursorPos= 0;
                     offset= 0;
-                    historyOffset= -1;
                     input.clear();
                 }
-            } else if (ev.keyboard.keycode == 82) {
-                charNo--;
+            } else if (ev.keyboard.keycode == 82 && input.moveLeft(1)) {
                 cursorPos--;
-            } else if (ev.keyboard.keycode == 83 && charNo < input.size()) {
-                charNo++;
+            } else if (ev.keyboard.keycode == 83 && input.moveRight(1)) {
                 cursorPos++;
-            } else if (ev.keyboard.keycode == 85 && historyOffset > -1) {
-                historyOffset--;
-                if (historyOffset == -1) {
-                    input= oldInput;
-                } else {
-                    input= Commands::getHistories()[historyOffset];
-                }
-                charNo= input.size();
-                cursorPos= input.size() % console->getCharPerLine();
-            } else if (ev.keyboard.keycode == 84 && historyOffset < (int)Commands::getHistories().size() - 1) {
-                historyOffset++;
-                if (historyOffset == 0) {
-                    oldInput= input;
-                }
-                input= Commands::getHistories()[historyOffset];
-                charNo= input.size();
+            } else if (ev.keyboard.keycode == 84 && input.prevCommand() || ev.keyboard.keycode == 85 && input.nextCommand()) {
                 cursorPos= input.size() % console->getCharPerLine();
             } else if (ev.keyboard.unichar > 0) {
-                input.insert(charNo, 1, char(ev.keyboard.unichar));
-                charNo++;
+                input.insertChar(char(ev.keyboard.unichar));
                 cursorPos++;
             }
         } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
@@ -208,7 +186,7 @@ void start() {
             offset++;
             cursorPos= console->getCharPerLine();
         }
-        draw(input, offset, cursorPos);
+        draw(input.getValue(), offset, cursorPos);
     }
 }
 
