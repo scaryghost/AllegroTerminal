@@ -1,5 +1,5 @@
-#include "AllegroTerminal/Commands.h"
-#include "AllegroTerminal/Input.h"
+#include "AllegroTerminal/Terminal/Commands.h"
+#include "AllegroTerminal/Terminal/Input.h"
 
 namespace etsai {
 namespace allegroterminal {

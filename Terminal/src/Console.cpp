@@ -1,5 +1,5 @@
-#include "AllegroTerminal/Console.h"
-#include "AllegroTerminal/Commands.h"
+#include "AllegroTerminal/Terminal/Console.h"
+#include "AllegroTerminal/Terminal/Commands.h"
 
 #include <exception>
 

@@ -10,9 +10,9 @@
 #include <string>
 #include <vector>
 
-#include "AllegroTerminal/Commands.h"
-#include "AllegroTerminal/Console.h"
-#include "AllegroTerminal/Input.h"
+#include "AllegroTerminal/Terminal/Commands.h"
+#include "AllegroTerminal/Terminal/Console.h"
+#include "AllegroTerminal/Terminal/Input.h"
 
 using namespace std;
 using namespace etsai::allegroterminal;

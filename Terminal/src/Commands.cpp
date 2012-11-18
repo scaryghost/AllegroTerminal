@@ -1,4 +1,4 @@
-#include "AllegroTerminal/Commands.h"
+#include "AllegroTerminal/Terminal/Commands.h"
 
 #include <sstream>
 #include <utility>
