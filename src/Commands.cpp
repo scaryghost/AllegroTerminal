@@ -14,6 +14,7 @@ using std::unordered_map;
 using std::vector;
 
 unordered_map<string, Commands::TermCommand> Commands::commands;
+vector<string> Commands::history;
 
 void Commands::add(std::string name, const TermCommand &comm) throw(std::runtime_error) {
     if (commands.count(name) != 0) {
@@ -31,6 +32,7 @@ void Commands::exec(const std::string line) throw(std::runtime_error) {
     vector<string> args;
     size_t i;
 
+    history.insert(history.begin(), line);
     /** parse the command line */
     for(i= 0; i < line.size(); i++) {
         if (line[i] == '\"') {
@@ -65,6 +67,10 @@ void Commands::exec(const std::string line) throw(std::runtime_error) {
     }
 
     commands[name](args);
+}
+
+const std::vector<std::string>& Commands::getHistories() {
+    return history;
 }
 
 }   //namespace allegroterminal

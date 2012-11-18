@@ -112,14 +112,27 @@ void addCommands() {
 #endif
         console->addLine(string("Current time: ") + timeStamp);
     });
+
+    Commands::add("history", [](const vector<string> &args) -> void {
+        auto history= Commands::getHistories();
+        int index= 0;
+
+        for(auto it= history.end() - 1; it >= history.begin(); it--,index++) {
+            stringstream line(stringstream::out);
+            line << index << " " << *it;
+            console->addLine(line.str());
+        }
+    });
 }
 
 void start() {
     int cursorPos= 0;
     size_t charNo= 0;
     int offset= 0;
+    int historyOffset= -1;
     vector<string> visibleLines;
     vector<bool> pressed_keys(ALLEGRO_KEY_MAX, false);
+    string input, oldInput;
 
     while(!endProgram) {
         ALLEGRO_EVENT ev;
@@ -134,23 +147,47 @@ void start() {
                 if (charNo != 0) {
                     cursorPos--;
                     charNo--;
-                    console->removeInputChar(charNo);
+                    input.erase(charNo, 1);
                 }
             } else if (ev.keyboard.keycode == 67) {
-                if (!console->getInput().empty()) {
-                    console->exec();
+                if (!input.empty()) {
+                    try {
+                        console->addLine("> " + input);
+                        Commands::exec(input);
+                    } catch (exception &ex) {
+                        console->addLine(ex.what());
+                    }
                     charNo= 0;
                     cursorPos= 0;
                     offset= 0;
+                    historyOffset= -1;
+                    input.clear();
                 }
             } else if (ev.keyboard.keycode == 82) {
                 charNo--;
                 cursorPos--;
-            } else if (ev.keyboard.keycode == 83 && charNo < console->getInput().size()) {
+            } else if (ev.keyboard.keycode == 83 && charNo < input.size()) {
                 charNo++;
                 cursorPos++;
+            } else if (ev.keyboard.keycode == 85 && historyOffset > -1) {
+                historyOffset--;
+                if (historyOffset == -1) {
+                    input= oldInput;
+                } else {
+                    input= Commands::getHistories()[historyOffset];
+                }
+                charNo= input.size();
+                cursorPos= input.size() % console->getCharPerLine();
+            } else if (ev.keyboard.keycode == 84 && historyOffset < (int)Commands::getHistories().size() - 1) {
+                historyOffset++;
+                if (historyOffset == 0) {
+                    oldInput= input;
+                }
+                input= Commands::getHistories()[historyOffset];
+                charNo= input.size();
+                cursorPos= input.size() % console->getCharPerLine();
             } else if (ev.keyboard.unichar > 0) {
-                console->addInputChar(char(ev.keyboard.unichar), charNo);
+                input.insert(charNo, 1, char(ev.keyboard.unichar));
                 charNo++;
                 cursorPos++;
             }
@@ -171,7 +208,7 @@ void start() {
             offset++;
             cursorPos= console->getCharPerLine();
         }
-        draw(console->getInput(), offset, cursorPos);
+        draw(input, offset, cursorPos);
     }
 }
 

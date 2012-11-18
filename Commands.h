@@ -20,9 +20,11 @@ public:
 
     static void add(std::string name, const TermCommand &comm) throw(std::runtime_error);
     static void exec(const std::string line) throw(std::runtime_error);
+    static const std::vector<std::string>& getHistories();
 
 private:
     static std::unordered_map<std::string, TermCommand> commands;
+    static std::vector<std::string> history;
 };
 
 }   //namespace allegroterminal

@@ -15,16 +15,10 @@ public:
     std::vector<std::string> getVisibleLines() const;
     int getCharPerLine() const;
     int getMaxVisibleLines() const;
-    std::string getInput() const;
-    const std::vector<std::string>& getHistories(int offset) const;
     
     void addLine(const std::string &line);
     void scrollUp(int numLines);
     void scrollDown(int numLines);
-
-    void exec();
-    void addInputChar(char ch, int pos);
-    void removeInputChar(int pos);
 
 protected:
     int calcNumLines(int left, int right) const;
@@ -41,8 +35,6 @@ private:
     int visibleEnd;
     std::string input;
     std::vector<std::string> lines;
-    std::vector<std::string> histories;
-
 };  //class Console
 
 }   //namespace allegroterminal
