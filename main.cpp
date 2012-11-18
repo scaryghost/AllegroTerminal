@@ -2,6 +2,7 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -164,7 +165,9 @@ void start() {
             } else if (ev.keyboard.keycode == 83 && input.moveRight(1)) {
                 cursorPos++;
             } else if (ev.keyboard.keycode == 84 && input.prevCommand() || ev.keyboard.keycode == 85 && input.nextCommand()) {
-                cursorPos= input.size() % console->getCharPerLine();
+                cursorPos= min((int)input.size(), console->getCharPerLine());
+                offset= max((int)input.size() - console->getCharPerLine(), 0);
+                cout << cursorPos << " " << offset<<endl;
             } else if (ev.keyboard.unichar > 0) {
                 input.insertChar(char(ev.keyboard.unichar));
                 cursorPos++;

@@ -19,8 +19,8 @@ bool Input::empty() const  {
     return current.empty();
 }
 
-unsigned int Input::size() const {
-    return current.size();
+int Input::size() const {
+    return (int)current.size();
 }
 
 bool Input::moveLeft(int offset) {

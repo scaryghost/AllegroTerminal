@@ -13,7 +13,7 @@ public:
     void clear();
 
     bool empty() const;
-    unsigned int size() const;
+    int size() const;
 
     bool moveLeft(int offset);
     bool moveRight(int offset);
