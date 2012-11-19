@@ -4,14 +4,12 @@
 #include <allegro5/allegro_primitives.h>
 
 #include <string>
-#include <sstream>
 #include <vector>
 
 namespace etsai {
 namespace allegroterminal {
 
 using std::string;
-using std::stringstream;
 using std::vector;
 
 AllegroWindow::AllegroWindow(ALLEGRO_FONT *font, Console *console) : Window(console) {
@@ -35,10 +33,6 @@ void AllegroWindow::drawConsole() {
 }
 
 void AllegroWindow::drawInput() {
-    stringstream offset(stringstream::out);
-
-    offset << inputOffset;
-    //al_draw_text(font, al_map_rgb(0,255,0), 0, console->getMaxVisibleLines() * al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, offset.str().c_str());
     al_draw_text(font, al_map_rgb(0,255,0), 0, console->getMaxVisibleLines() * al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, input.substr(inputOffset, console->getCharPerLine()).c_str());
 }
 
