@@ -70,14 +70,14 @@ void Window::addChar(char ch) {
     moveCursorRight(1);
 }
 
-void Window::removeChar(char ch) {
+void Window::removeChar() {
     if (charPos > 0) {
         input.erase(charPos - 1);
         moveCursorLeft(1);
     }
 }
 
-void Window::execute(const std::string &command) {
+void Window::execute() {
     if (!input.empty()) {
         try {
            console->addLine("> " + input);

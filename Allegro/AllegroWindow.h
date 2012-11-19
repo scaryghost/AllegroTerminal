@@ -2,6 +2,7 @@
 #define ETSAI_ALLEGROTERMINAL_ALLEGROWINDOW
 
 #include "AllegroTerminal/Terminal/terminal.h"
+#include <allegro5/allegro_font.h>
 
 namespace etsai {
 namespace allegroterminal {

@@ -10,19 +10,18 @@
 #include <string>
 #include <vector>
 
-#include "AllegroTerminal/Terminal/Commands.h"
-#include "AllegroTerminal/Terminal/Console.h"
-#include "AllegroTerminal/Terminal/Input.h"
+#include "AllegroTerminal/Terminal/terminal.h"
+#include "AllegroTerminal/Allegro/AllegroWindow.h"
 
 using namespace std;
 using namespace etsai::allegroterminal;
 
 void start();
-void draw(const string& msg, int offset, int cursorPos);
 void addCommands();
 
 volatile bool endProgram= false, drawCursor= true;
 int width, height;
+Window *window;
 Console *console;
 ALLEGRO_DISPLAY *display= NULL;
 ALLEGRO_EVENT_QUEUE *event_queue= NULL;
@@ -68,17 +67,19 @@ int main(int argc, char **argv) {
 
     fontW= al_get_text_width(font,"a");
     console= new Console(width/fontW, 4096, height/al_get_font_line_height(font) - 1);
+    window= new AllegroWindow(font, console);
+
     cpl << "chars per line: " << console->getCharPerLine();
     mvl << "max visible lines: " << console->getMaxVisibleLines();
     console->addLine(cpl.str());
     console->addLine(mvl.str());
 
-    draw("", 0, 0);
     addCommands();
     al_start_timer(timer);
     start();
     al_destroy_display(display);
     delete console;
+    delete window;
 }
 
 void addCommands() {
@@ -128,11 +129,7 @@ void addCommands() {
 }
 
 void start() {
-    int cursorPos= 0;
-    int offset= 0;
-    vector<string> visibleLines;
     vector<bool> pressed_keys(ALLEGRO_KEY_MAX, false);
-    Input input;
 
     while(!endProgram) {
         ALLEGRO_EVENT ev;
@@ -144,77 +141,36 @@ void start() {
             drawCursor= !drawCursor;
         } else if (ev.type == ALLEGRO_EVENT_KEY_CHAR) {
             if (ev.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) {
-                if (input.removeChar()) {
-                    cursorPos--;
-                    if (cursorPos == 0 && offset != 0) {
-                        int delta= min(offset, 4);
-                        offset-= delta;
-                        cursorPos= delta;
-                    }
-                }
+                window->removeChar();
             } else if (ev.keyboard.keycode == ALLEGRO_KEY_HOME) {
-                input.moveLeft(offset + cursorPos);
-                offset= 0;
-                cursorPos= 0;
             } else if (ev.keyboard.keycode == ALLEGRO_KEY_END) {
-                input.moveRight(input.size());
-                offset= max((int)input.size() - console->getCharPerLine(), 0);
-                cursorPos= min((int)input.size(), console->getCharPerLine());
             } else if (ev.keyboard.keycode == ALLEGRO_KEY_ENTER) {
-                if (!input.empty()) {
-                    try {
-                        console->addLine("> " + input.getValue());
-                        Commands::exec(input.getValue());
-                    } catch (exception &ex) {
-                        console->addLine(ex.what());
-                    }
-                    cursorPos= 0;
-                    offset= 0;
-                    input.clear();
-                }
-            } else if (ev.keyboard.keycode == ALLEGRO_KEY_LEFT && input.moveLeft(1)) {
-                cursorPos--;
-            } else if (ev.keyboard.keycode == ALLEGRO_KEY_RIGHT && input.moveRight(1)) {
-                cursorPos++;
-            } else if (ev.keyboard.keycode == ALLEGRO_KEY_UP && input.prevCommand() || ev.keyboard.keycode == ALLEGRO_KEY_DOWN && input.nextCommand()) {
-                cursorPos= min((int)input.size(), console->getCharPerLine());
-                offset= max((int)input.size() - console->getCharPerLine(), 0);
+                window->execute();
+            } else if (ev.keyboard.keycode == ALLEGRO_KEY_LEFT) {
+                window->moveCursorLeft(1);
+            } else if (ev.keyboard.keycode == ALLEGRO_KEY_RIGHT) {
+                window->moveCursorRight(1);
+            } else if (ev.keyboard.keycode == ALLEGRO_KEY_UP) {
+                window->prevCommand();
+            } else if (ev.keyboard.keycode == ALLEGRO_KEY_DOWN) {
+                window->nextCommand();
             } else if (ev.keyboard.unichar > 0) {
-                input.insertChar(char(ev.keyboard.unichar));
-                cursorPos++;
+                window->addChar(char(ev.keyboard.unichar));
             }
         } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
             pressed_keys[ev.keyboard.keycode]= true;
             if (pressed_keys[ALLEGRO_KEY_LSHIFT] && pressed_keys[ALLEGRO_KEY_PGUP]) {
-                console->scrollUp(4);
+                window->scrollUp(4);
             } else if (pressed_keys[ALLEGRO_KEY_LSHIFT] && pressed_keys[ALLEGRO_KEY_PGDN]) {
-                console->scrollDown(4);
+                window->scrollDown(4);
             }
         } else if (ev.type == ALLEGRO_EVENT_KEY_UP) {
             pressed_keys[ev.keyboard.keycode]= false;
         }
-        if (cursorPos < 0) {
-            offset--;
-            cursorPos= 0;
-        } else if (cursorPos > console->getCharPerLine()) {
-            offset++;
-            cursorPos= console->getCharPerLine();
-        }
-        draw(input.getValue(), offset, cursorPos);
+        al_clear_to_color(al_map_rgb(0,0,0));
+        window->drawConsole();
+        window->drawInput();
+        window->drawCursor();
+        al_flip_display();
     }
-}
-
-void draw(const string& msg, int offset, int cursorPos) {
-    vector<string> visibleLines= console->getVisibleLines();
-    int y= 0;
-
-    al_clear_to_color(al_map_rgb(0,0,0));
-    if (drawCursor) {
-        al_draw_text(font, al_map_rgb(0,255,0), cursorPos * fontW, height-al_get_font_line_height(font), ALLEGRO_ALIGN_CENTRE, "|");
-    }
-    al_draw_text(font, al_map_rgb(0,255,0), 0, height-al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, msg.substr(offset, console->getCharPerLine()).c_str());
-    for(auto it= visibleLines.begin(); it != visibleLines.end(); it++,y++) {
-        al_draw_text(font, al_map_rgb(0,255,0), 0, y * al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, it->c_str());
-    }
-    al_flip_display();
 }

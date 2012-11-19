@@ -17,8 +17,8 @@ public:
     void scrollDown(int offset);
 
     void addChar(char ch);
-    void removeChar(char ch);
-    void execute(const std::string &command);
+    void removeChar();
+    void execute();
     void prevCommand();
     void nextCommand();
     
