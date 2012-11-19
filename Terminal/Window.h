@@ -13,11 +13,15 @@ public:
 
     int moveCursorLeft(int offset);
     int moveCursorRight(int offset);
+    void moveToStart();
+    void moveToEnd();
     void scrollUp(int offset);
     void scrollDown(int offset);
 
     void addChar(char ch);
     void removeChar();
+    void deletePastCursor();
+    void deleteBeforeCursor();
     void execute();
     void prevCommand();
     void nextCommand();

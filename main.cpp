@@ -145,7 +145,9 @@ void start() {
             if (ev.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) {
                 window->removeChar();
             } else if (ev.keyboard.keycode == ALLEGRO_KEY_HOME) {
+                window->moveToStart();
             } else if (ev.keyboard.keycode == ALLEGRO_KEY_END) {
+                window->moveToEnd();
             } else if (ev.keyboard.keycode == ALLEGRO_KEY_ENTER) {
                 window->execute();
             } else if (ev.keyboard.keycode == ALLEGRO_KEY_LEFT) {
@@ -156,7 +158,7 @@ void start() {
                 window->prevCommand();
             } else if (ev.keyboard.keycode == ALLEGRO_KEY_DOWN) {
                 window->nextCommand();
-            } else if (ev.keyboard.unichar > 0) {
+            } else if ((ev.keyboard.modifiers & ALLEGRO_KEYMOD_CTRL) != ALLEGRO_KEYMOD_CTRL && ev.keyboard.unichar > 0) {
                 window->addChar(char(ev.keyboard.unichar));
             }
         } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
@@ -165,6 +167,14 @@ void start() {
                 window->scrollUp(4);
             } else if (pressed_keys[ALLEGRO_KEY_LSHIFT] && pressed_keys[ALLEGRO_KEY_PGDN]) {
                 window->scrollDown(4);
+            } else if (pressed_keys[ALLEGRO_KEY_LCTRL] && pressed_keys[ALLEGRO_KEY_A]) {
+                window->moveToStart();
+            } else if (pressed_keys[ALLEGRO_KEY_LCTRL] && pressed_keys[ALLEGRO_KEY_E]) {
+                window->moveToEnd();
+            } else if (pressed_keys[ALLEGRO_KEY_LCTRL] && pressed_keys[ALLEGRO_KEY_K]) {
+                window->deletePastCursor();
+            } else if (pressed_keys[ALLEGRO_KEY_LCTRL] && pressed_keys[ALLEGRO_KEY_U]) {
+                window->deleteBeforeCursor();
             }
         } else if (ev.type == ALLEGRO_EVENT_KEY_UP) {
             pressed_keys[ev.keyboard.keycode]= false;

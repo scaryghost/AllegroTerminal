@@ -65,6 +65,14 @@ int Window::moveCursorRight(int offset) {
     return actualOffset;
 }
 
+void Window::moveToStart() {
+    moveCursorLeft(input.size());
+}
+
+void Window::moveToEnd() {
+    moveCursorRight(input.size());
+}
+
 void Window::scrollUp(int offset) {
     console->scrollUp(offset);
 }
@@ -83,6 +91,17 @@ void Window::removeChar() {
         input.erase(charPos - 1, 1);
         moveCursorLeft(1);
     }
+}
+
+void Window::deletePastCursor() {
+    input.erase(charPos);
+}
+
+void Window::deleteBeforeCursor() {
+    input.erase(0, charPos);
+    cursorPos= 0;
+    inputOffset= 0;
+    charPos= 0;
 }
 
 void Window::execute() {
