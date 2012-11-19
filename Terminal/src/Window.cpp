@@ -1,12 +1,15 @@
 #include "AllegroTerminal/Terminal/Window.h"
 #include "AllegroTerminal/Terminal/Commands.h"
 
+#include <algorithm>
 #include <exception>
 
 namespace etsai {
 namespace allegroterminal {
 
 using std::exception;
+using std::max;
+using std::min;
 
 Window::Window(Console* console) :
 cursorPos(0), charPos(0), inputOffset(0), historyOffset(-1) {
@@ -24,8 +27,13 @@ int Window::moveCursorLeft(int offset) {
     } else {
         while(offset > 0) {
             if(cursorPos == 0) {
-                cursorPos= 4;
-                inputOffset-= 4;
+                if (inputOffset < 4) {
+                    cursorPos= inputOffset;
+                    inputOffset= 0;
+                } else {
+                    inputOffset-= 4;
+                    cursorPos= 4;
+                }
             }
             cursorPos--;
             offset--;
@@ -38,20 +46,21 @@ int Window::moveCursorLeft(int offset) {
 
 int Window::moveCursorRight(int offset) {
     int actualOffset;
+    int end= console->getCharPerLine() - 1;
 
     if (charPos + offset > input.size()) {
         actualOffset= input.size() - charPos;
         charPos= input.size();
-        cursorPos= input.size();
+        cursorPos= min((int)input.size(), end);
         inputOffset+= actualOffset;
     } else {
         actualOffset= offset;
         cursorPos+= offset;
         charPos+= offset;
-        if (cursorPos > console->getCharPerLine()) {
-            inputOffset+= console->getCharPerLine() - cursorPos;
-            cursorPos= console->getCharPerLine();
-        }
+    }
+    if (cursorPos > end) {
+        inputOffset+= cursorPos - end;
+        cursorPos= end;
     }
     return actualOffset;
 }
@@ -66,13 +75,12 @@ void Window::scrollDown(int offset) {
 
 void Window::addChar(char ch) {
     input.insert(charPos, 1, ch);
-    charPos++;
     moveCursorRight(1);
 }
 
 void Window::removeChar() {
     if (charPos > 0) {
-        input.erase(charPos - 1);
+        input.erase(charPos - 1, 1);
         moveCursorLeft(1);
     }
 }
@@ -100,6 +108,8 @@ void Window::prevCommand() {
             savedInput= input;
         }
         input= Commands::getHistories()[historyOffset];
+        cursorPos= min((int)input.size(), console->getCharPerLine());
+        inputOffset= max((int)input.size() - console->getCharPerLine(), 0);
         charPos= input.size();
     }
 }
@@ -112,6 +122,8 @@ void Window::nextCommand() {
         } else {
             input= Commands::getHistories()[historyOffset];
         }
+        cursorPos= min((int)input.size(), console->getCharPerLine());
+        inputOffset= max((int)input.size() - console->getCharPerLine(), 0);
         charPos= input.size();
     }
 }

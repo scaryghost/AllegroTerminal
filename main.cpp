@@ -1,5 +1,6 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
+#include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_ttf.h>
 
 #include <algorithm>
@@ -42,6 +43,7 @@ int main(int argc, char **argv) {
 
     al_init_font_addon();   // initialize the font addon
     al_init_ttf_addon();    // initialize the ttf (True Type Font) addon
+    al_init_primitives_addon();
     font= al_load_ttf_font(fontPath, atoi(argv[3]), 0);
 
     event_queue = al_create_event_queue();
@@ -170,7 +172,9 @@ void start() {
         al_clear_to_color(al_map_rgb(0,0,0));
         window->drawConsole();
         window->drawInput();
-        window->drawCursor();
+        if (drawCursor) {
+            window->drawCursor();
+        }
         al_flip_display();
     }
 }

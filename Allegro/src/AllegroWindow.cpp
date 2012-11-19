@@ -4,12 +4,14 @@
 #include <allegro5/allegro_primitives.h>
 
 #include <string>
+#include <sstream>
 #include <vector>
 
 namespace etsai {
 namespace allegroterminal {
 
 using std::string;
+using std::stringstream;
 using std::vector;
 
 AllegroWindow::AllegroWindow(ALLEGRO_FONT *font, Console *console) : Window(console) {
@@ -19,8 +21,8 @@ AllegroWindow::AllegroWindow(ALLEGRO_FONT *font, Console *console) : Window(cons
 void AllegroWindow::drawCursor() {
     int fontW= al_get_text_width(font,"a");
     int yPos= console->getMaxVisibleLines() * al_get_font_line_height(font);
-    al_draw_filled_rectangle(charPos * fontW, yPos, (charPos + 1) * fontW, yPos, al_map_rgb(0,255,0));
-    al_draw_text(font, al_map_rgb(0,0,0), 0, yPos, ALLEGRO_ALIGN_LEFT, input.substr(charPos, 1).c_str());
+    al_draw_filled_rectangle(cursorPos * fontW, yPos, (cursorPos + 1) * fontW, yPos + al_get_font_line_height(font), al_map_rgb(0,255,0));
+    al_draw_text(font, al_map_rgb(0,0,0), cursorPos * fontW, yPos, ALLEGRO_ALIGN_LEFT, input.substr(inputOffset + cursorPos, 1).c_str());
 }
 
 void AllegroWindow::drawConsole() {
@@ -33,6 +35,10 @@ void AllegroWindow::drawConsole() {
 }
 
 void AllegroWindow::drawInput() {
+    stringstream offset(stringstream::out);
+
+    offset << inputOffset;
+    //al_draw_text(font, al_map_rgb(0,255,0), 0, console->getMaxVisibleLines() * al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, offset.str().c_str());
     al_draw_text(font, al_map_rgb(0,255,0), 0, console->getMaxVisibleLines() * al_get_font_line_height(font), ALLEGRO_ALIGN_LEFT, input.substr(inputOffset, console->getCharPerLine()).c_str());
 }
 
