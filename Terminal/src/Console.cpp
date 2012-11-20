@@ -16,9 +16,6 @@ Console::Console(int charPerLine, int maxLinesStored, int maxVisibleLines) :
     lines.resize(maxLinesStored);
 }
 
-Console::~Console() {
-}
-
 vector<string> Console::getVisibleLines() const {
     vector<string> visibleLines(calcNumLines(visibleBegin, visibleEnd));
     bool terminate= (visibleBegin == visibleEnd);
