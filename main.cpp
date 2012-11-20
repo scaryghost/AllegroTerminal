@@ -19,24 +19,17 @@
 using namespace std;
 using namespace etsai::allegroterminal;
 
-void start();
+void start(ALLEGRO_EVENT_QUEUE *event_queue);
 void addCommands();
 
-volatile bool endProgram= false, drawCursor= true;
-int width, height;
+volatile bool endProgram= false;
 Window *window;
 Console *console;
-ALLEGRO_DISPLAY *display= NULL;
-ALLEGRO_EVENT_QUEUE *event_queue= NULL;
-ALLEGRO_FONT *font= NULL;
-ALLEGRO_TIMER *timer;
-int fontW;
 
 int main(int argc, char **argv) {
     stringstream cpl(stringstream::out), mvl(stringstream::out);
     const char *fontPath= "DejaVuSansMono.ttf";
-    width= atoi(argv[1]);
-    height= atoi(argv[2]);
+    int width= atoi(argv[1]), height= atoi(argv[2]);
 
     if(!al_init()) {
         cerr << "failed to initialize allegro!\n";
@@ -46,9 +39,9 @@ int main(int argc, char **argv) {
     al_init_font_addon();   // initialize the font addon
     al_init_ttf_addon();    // initialize the ttf (True Type Font) addon
     al_init_primitives_addon();
-    font= al_load_ttf_font(fontPath, atoi(argv[3]), 0);
+    ALLEGRO_FONT *font= al_load_ttf_font(fontPath, atoi(argv[3]), 0);
 
-    event_queue = al_create_event_queue();
+    ALLEGRO_EVENT_QUEUE *event_queue= al_create_event_queue();
     if(!event_queue) {
         cerr << "failed to create event_queue!\n";
         return -1;
@@ -58,19 +51,18 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    display = al_create_display(width, height);
+    ALLEGRO_DISPLAY *display= al_create_display(width, height);
     if(!display) {
         cerr << "failed to create display!\n";
         return -1;
     }
 
-    timer = al_create_timer(0.5);
+    ALLEGRO_TIMER *timer= al_create_timer(0.5);
     al_register_event_source(event_queue, al_get_timer_event_source(timer));
     al_register_event_source(event_queue, al_get_display_event_source(display));
     al_register_event_source(event_queue, al_get_keyboard_event_source());
 
-    fontW= al_get_text_width(font,"a");
-    console= new Console(width/fontW, 4096, height/al_get_font_line_height(font) - 1);
+    console= new Console(width/al_get_text_width(font,"a"), 4096, height/al_get_font_line_height(font) - 1);
     window= new AllegroWindow(font, console);
 
     cpl << "chars per line: " << console->getCharPerLine();
@@ -80,7 +72,7 @@ int main(int argc, char **argv) {
 
     addCommands();
     al_start_timer(timer);
-    start();
+    start(event_queue);
     al_destroy_display(display);
     delete console;
     delete window;
@@ -132,9 +124,9 @@ void addCommands() {
     });
 }
 
-void start() {
-    vector<bool> pressed_keys(ALLEGRO_KEY_MAX, false);
-    unordered_map<int, function<void ()> > keybinds, ctrlKeyBinds;
+void start(ALLEGRO_EVENT_QUEUE *event_queue) {
+    bool drawCursor= true;
+    unordered_map<int, function<void ()> > keybinds, ctrlKeyBinds, shiftKeyBinds;
 
     keybinds[ALLEGRO_KEY_BACKSPACE]= []() -> void {
         window->removeChar();
@@ -173,34 +165,39 @@ void start() {
     ctrlKeyBinds[ALLEGRO_KEY_U]= []() -> void {
         window->deleteBeforeCursor();
     };
-
+    
+    shiftKeyBinds[ALLEGRO_KEY_PGUP]= []() -> void {
+        window->scrollUp(4);
+    };
+    shiftKeyBinds[ALLEGRO_KEY_PGDN]= []() -> void {
+        window->scrollDown(4);
+    };
     while(!endProgram) {
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
 
-        if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-            break;
-        } else if(ev.type == ALLEGRO_EVENT_TIMER) {
-            drawCursor= !drawCursor;
-        } else if (ev.type == ALLEGRO_EVENT_KEY_CHAR) {
-            if ((ev.keyboard.modifiers & ALLEGRO_KEYMOD_CTRL) ==  ALLEGRO_KEYMOD_CTRL) {
-                ctrlKeyBinds[ev.keyboard.keycode]();
-            } else {
-                if (keybinds.count(ev.keyboard.keycode) != 0) {
-                   keybinds[ev.keyboard.keycode]();
+        switch(ev.type) {
+            case ALLEGRO_EVENT_DISPLAY_CLOSE:
+                endProgram= true;
+                break;
+            case ALLEGRO_EVENT_TIMER:
+                drawCursor= !drawCursor;
+                break;
+            case ALLEGRO_EVENT_KEY_CHAR:
+                if ((ev.keyboard.modifiers & ALLEGRO_KEYMOD_CTRL) ==  ALLEGRO_KEYMOD_CTRL) {
+                    ctrlKeyBinds[ev.keyboard.keycode]();
                 } else {
-                    window->addChar(char(ev.keyboard.unichar));
+                    if (keybinds.count(ev.keyboard.keycode) != 0) {
+                    keybinds[ev.keyboard.keycode]();
+                    } else {
+                        if ((ev.keyboard.modifiers & ALLEGRO_KEYMOD_SHIFT) ==  ALLEGRO_KEYMOD_SHIFT && shiftKeyBinds.count(ev.keyboard.keycode) != 0) {
+                            shiftKeyBinds[ev.keyboard.keycode]();
+                        } else {
+                            window->addChar(char(ev.keyboard.unichar));
+                        }
+                    }
                 }
-            }
-        } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-            pressed_keys[ev.keyboard.keycode]= true;
-            if (pressed_keys[ALLEGRO_KEY_LSHIFT] && pressed_keys[ALLEGRO_KEY_PGUP]) {
-                window->scrollUp(4);
-            } else if (pressed_keys[ALLEGRO_KEY_LSHIFT] && pressed_keys[ALLEGRO_KEY_PGDN]) {
-                window->scrollDown(4);
-            }
-        } else if (ev.type == ALLEGRO_EVENT_KEY_UP) {
-            pressed_keys[ev.keyboard.keycode]= false;
+                break;
         }
         al_clear_to_color(al_map_rgb(0,0,0));
         window->drawConsole();
