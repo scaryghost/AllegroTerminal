@@ -6,9 +6,11 @@
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "AllegroTerminal/Terminal/terminal.h"
@@ -132,34 +134,63 @@ void addCommands() {
 
 void start() {
     vector<bool> pressed_keys(ALLEGRO_KEY_MAX, false);
+    unordered_map<int, function<void ()> > keybinds, ctrlKeyBinds;
+
+    keybinds[ALLEGRO_KEY_BACKSPACE]= []() -> void {
+        window->removeChar();
+    };
+    keybinds[ALLEGRO_KEY_HOME]= []() -> void {
+        window->moveToStart();
+    };
+    keybinds[ALLEGRO_KEY_END]= []() -> void {
+        window->moveToStart();
+    };
+    keybinds[ALLEGRO_KEY_ENTER]= []() -> void {
+        window->execute();
+    };
+    keybinds[ALLEGRO_KEY_LEFT]= []() -> void {
+        window->moveCursorLeft(1);
+    };
+    keybinds[ALLEGRO_KEY_RIGHT]= []() -> void {
+        window->moveCursorRight(1);
+    };
+    keybinds[ALLEGRO_KEY_UP]= []() -> void {
+        window->prevCommand();
+    };
+    keybinds[ALLEGRO_KEY_DOWN]= []() -> void {
+        window->nextCommand();
+    };
+
+    ctrlKeyBinds[ALLEGRO_KEY_A]= []() -> void {
+        window->moveToStart();
+    };
+    ctrlKeyBinds[ALLEGRO_KEY_E]= []() -> void {
+        window->moveToEnd();
+    };
+    ctrlKeyBinds[ALLEGRO_KEY_K]= []() -> void {
+        window->deletePastCursor();
+    };
+    ctrlKeyBinds[ALLEGRO_KEY_U]= []() -> void {
+        window->deleteBeforeCursor();
+    };
 
     while(!endProgram) {
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
-        
+
         if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
             break;
         } else if(ev.type == ALLEGRO_EVENT_TIMER) {
             drawCursor= !drawCursor;
         } else if (ev.type == ALLEGRO_EVENT_KEY_CHAR) {
-            if (ev.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) {
-                window->removeChar();
-            } else if (ev.keyboard.keycode == ALLEGRO_KEY_HOME) {
-                window->moveToStart();
-            } else if (ev.keyboard.keycode == ALLEGRO_KEY_END) {
-                window->moveToEnd();
-            } else if (ev.keyboard.keycode == ALLEGRO_KEY_ENTER) {
-                window->execute();
-            } else if (ev.keyboard.keycode == ALLEGRO_KEY_LEFT) {
-                window->moveCursorLeft(1);
-            } else if (ev.keyboard.keycode == ALLEGRO_KEY_RIGHT) {
-                window->moveCursorRight(1);
-            } else if (ev.keyboard.keycode == ALLEGRO_KEY_UP) {
-                window->prevCommand();
-            } else if (ev.keyboard.keycode == ALLEGRO_KEY_DOWN) {
-                window->nextCommand();
-            } else if ((ev.keyboard.modifiers & ALLEGRO_KEYMOD_CTRL) != ALLEGRO_KEYMOD_CTRL && ev.keyboard.unichar > 0) {
-                window->addChar(char(ev.keyboard.unichar));
+            if ((ev.keyboard.modifiers & ALLEGRO_KEYMOD_CTRL) ==  ALLEGRO_KEYMOD_CTRL) {
+                ctrlKeyBinds[ev.keyboard.keycode]();
+            } else {
+                if (keybinds.count(ev.keyboard.keycode) != 0) {
+                   keybinds[ev.keyboard.keycode]();
+                } else {
+                    window->addChar(char(ev.keyboard.unichar));
+                }
             }
         } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
             pressed_keys[ev.keyboard.keycode]= true;
@@ -167,14 +198,6 @@ void start() {
                 window->scrollUp(4);
             } else if (pressed_keys[ALLEGRO_KEY_LSHIFT] && pressed_keys[ALLEGRO_KEY_PGDN]) {
                 window->scrollDown(4);
-            } else if (pressed_keys[ALLEGRO_KEY_LCTRL] && pressed_keys[ALLEGRO_KEY_A]) {
-                window->moveToStart();
-            } else if (pressed_keys[ALLEGRO_KEY_LCTRL] && pressed_keys[ALLEGRO_KEY_E]) {
-                window->moveToEnd();
-            } else if (pressed_keys[ALLEGRO_KEY_LCTRL] && pressed_keys[ALLEGRO_KEY_K]) {
-                window->deletePastCursor();
-            } else if (pressed_keys[ALLEGRO_KEY_LCTRL] && pressed_keys[ALLEGRO_KEY_U]) {
-                window->deleteBeforeCursor();
             }
         } else if (ev.type == ALLEGRO_EVENT_KEY_UP) {
             pressed_keys[ev.keyboard.keycode]= false;
