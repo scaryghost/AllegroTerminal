@@ -18,17 +18,13 @@ Console::Console(int charPerLine, int maxLinesStored, int maxVisibleLines) :
 
 vector<string> Console::getVisibleLines() const {
     vector<string> visibleLines(calcNumLines(visibleBegin, visibleEnd));
-    bool terminate= (visibleBegin == visibleEnd);
-    int vlIndex= 0, i= visibleBegin;
+    unsigned int vlIndex= 0;
+    int i= visibleBegin;
     
-    while(!terminate) {
+    while(vlIndex < visibleLines.size()) {
         visibleLines[vlIndex]= lines[i];
         increment(i);
         vlIndex++;
-        terminate= (i > visibleEnd);
-    }
-    if (visibleBegin == visibleEnd) {
-        visibleLines[0]= lines[visibleBegin];
     }
     return visibleLines;
 }
@@ -51,6 +47,9 @@ void Console::addLine(const string& line) {
         }
         increment(end);
         if (begin == end || begin == -1) {
+            if (visibleBegin == begin) {
+                increment(visibleBegin);
+            }
             increment(begin);
         }
         lines[end]= substr;
