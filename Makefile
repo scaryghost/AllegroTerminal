@@ -1,12 +1,10 @@
-CPPC=g++
-CPPFLAGS=-Wall -std=c++0x
-OBJ= allegroterminal
-SRC=main.cpp src/Console.cpp
-ALLEGRO_LIBS=allegro-5.0 allegro_font-5.0 allegro_ttf-5.0
-INC_DIR=..
+include config.mk
 
-all:
-	$(CPPC) $(CPPFLAGS) -I$(INC_DIR) $(SRC) -o $(OBJ) `pkg-config --cflags --libs $(ALLEGRO_LIBS)`
+all: $(OBJS)
+	$(CPPC) $(CPP_FLAGS) $(MAIN) -o $(MAIN_OBJ) $(OBJS) `pkg-config --cflags --libs $(ALLEGRO_LIBS)`
+
+%.o: %.cpp
+	$(CPPC) -c $(CPP_FLAGS) $< -o $@
 
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJS) $(MAIN_OBJ)
